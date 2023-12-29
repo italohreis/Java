@@ -1,5 +1,7 @@
 package entities;
 
+import java.util.List;
+
 public class Employee {
 
     private Integer id;
@@ -36,8 +38,13 @@ public class Employee {
         salary += salary * percentage / 100;
     }
 
+    public static Employee hasId(List<Employee> list, int id) {
+        return list.stream().filter(x -> x.getId() == id).findFirst().orElse(null);
+    }
+    
     public String toString() {
         return id + ", " + name + ", " + String.format("%.2f", salary); 
     }
+
     
 }

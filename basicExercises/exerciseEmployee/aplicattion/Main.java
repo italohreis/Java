@@ -22,7 +22,7 @@ public class Main {
             System.out.print("\nId --> ");
             id = input.nextInt();
 
-            while(hasId(employess, id)) {
+            while(Employee.hasId(employess, id) != null) {
                 System.out.print("\nId already taken! Try again: ");
                 id = input.nextInt();
             }
@@ -62,10 +62,5 @@ public class Main {
 
         input.close();
     }
-
-    public static boolean hasId(List<Employee> list, int id) {
-        Employee emp = list.stream().filter(x -> x.getId() == id).findFirst().orElse(null);
-        return emp != null;
-    }
-    
+ 
 }
