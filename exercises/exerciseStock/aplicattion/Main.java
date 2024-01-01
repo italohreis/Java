@@ -58,17 +58,25 @@ public class Main {
         Locale.setDefault(Locale.US);
 
         Scanner input = new Scanner(System.in);
-        List<Product> list = new ArrayList<>();
-        Product products = null;
+        List<Product> list = new ArrayList<>(); // lista de produtos
+        Product products = null;    // objeto produto
 
-        while (true) {
+        System.out.println(BLUE +"\n* CASO QUEIRA VOLTAR AO MENU PRINCIPAL DIGITE '/' *\n\n" + RESET);
+        menu(list, input, products);
+    }
+
+
+    public static void menu(List<Product> list, Scanner input, Product products) {
+         while (true) {
             // menu
-            System.out.println("\nO que deseja fazer ?\n");
+            clearScreen();  //limpar a tela
+            System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n");
+            System.out.println("\n\nO que deseja fazer ?\n");
 
             System.out.println(" 1 - Inserir produto.\n 2 - Atualizar quantidade em estoque.");
             System.out.println(" 3 - Exibir valor total em estoque de um produto.\n 4 - Listar todos os produtos");
-            System.out.println(
-                    " 5 - Calcular valor total em estoque.\n 6 - Editar produto.\n 7 - Excluir produto.\n 8 - Finalizar");
+            System.out.println( " 5 - Calcular valor total em estoque.\n 6 - Editar produto.\n 7 - Excluir produto.\n 0 - Finalizar");
+            
             int resp = input.nextInt();
 
             switch (resp) {
@@ -83,22 +91,18 @@ public class Main {
                     showTotalValueProduct(list, input, products); // valor total de um produto em estoque
                     break;
                 case 4:
-
-                    listAllProducts(list, input, products); // função para listar todos os produtos em estoque
+                    listAllProducts(list, input); // função para listar todos os produtos em estoque
                     break;
                 case 5:
-
-                    calculateTotalValue(list, input, products); // calcula valor total de todos os produtos
+                    calculateTotalValue(list, input); // calcula valor total de todos os produtos
                     break;
                 case 6:
                     editProduct(list, input, products);
                     break;
                 case 7:
-
                     deleteProduct(list, input, products); // função para excluir produto
                     break;
-                case 8:
-
+                case 0:
                     exitProgram(); // função para finalizar o programa
                     input.close();
                     break;
@@ -109,61 +113,64 @@ public class Main {
         }
     }
 
-    public static void insertProduct(List<Product> list, Scanner input, Product products) {
-        int code = 0;
-        System.out.println(BLUE + "\n\nInserir Produto" + RESET);
-        boolean validInput = false;
-        do {
-            while(!validInput) {
-                System.out.print("\n\tCódigo do produto --> ");
-                
-                try {   // tenta converter a entrada do teclado para inteiro
-                    code = input.nextInt();
-                    validInput = true;
-                } catch (InputMismatchException e) { // caso não consiga converter
-                    System.out.println(RED + "\n\tCódigo inválido, tente novamente." + RESET);
-                    input.nextLine();   // limpar buffer do teclado com a entrada invalida
-                }
-            }
-            validInput = false;  // resetar validInput para false
-        } while (Product.hasCode(list, code) != null); //verifica se o codigo existe
 
+
+    public static void insertProduct(List<Product> list, Scanner input, Product products) {
+        clearScreen();
+
+        System.out.println(BLUE + "\n\nInserir Produto" + RESET);
+        int code = 0;
+        boolean validInput = false;
+        while(Product.hasCode(list, code) != null || code == 0) {
+
+            System.out.print("\n\tCódigo do produto --> ");
+            code = validInput(input, list, products);
+            
+            Product.hasCode(list, code);    // verifica se o código existe, se não retorna null
+            
+            if (Product.hasCode(list, code) != null) {
+                System.out.println(RED + "\n\tCódigo já cadastrado, tente novamente." + RESET);
+            }
+        }
+       
         System.out.print("\n\tDescrição do produto --> ");
         input.nextLine(); // limpar buffer do teclado
         String description = input.nextLine();
 
+        if (description.equals("/")) {  // caso o usuário digite /, volta ao menu
+            menu(list, input, products);
+        }
+
         double price = 0;
+        validInput = false;
         while(!validInput) {
             System.out.print("\n\tPreço do produto --> ");
 
-            try{
+            try{    //tenta converter a entrada para double
                 price = input.nextDouble();
                 validInput = true;
-            } catch (InputMismatchException e){
+            } catch (InputMismatchException e){ //caso não seja possível, retorna mensagem de erro
+                char codeChar = input.next().charAt(0); //pega o primeiro caractere da entrada
+
+                if(codeChar == '/') {   // caso o usuário digite /, volta ao menu
+                    menu(list, input, products);
+                }
+
                 System.out.println(RED + "\n\tPreço inválido, tente novamente." + RESET);
-                input.nextLine();
+                input.nextLine();   //limpar buffer do teclado
             }
         }
 
         validInput = false;
         int quantity = 0;
-        while (!validInput) {
+        while(quantity < 0 || quantity == 0) {
             System.out.print("\n\tQuantidade do produto --> ");
-
-            try {
-                quantity = input.nextInt();
-                validInput = true;
-
-                if (quantity < 0) {
-                    System.out.println(RED + "\n\tQuantidade inválida, tente novamente." + RESET);
-                    validInput = false;
-                }
-            } catch (InputMismatchException e) {
+            quantity = validInput(input, list, products);
+            
+            if (quantity < 0) {
                 System.out.println(RED + "\n\tQuantidade inválida, tente novamente." + RESET);
-                input.nextLine();
-            }
+            } 
         }
-       
         // instancia o objeto
         products = new Product(code, description, price, quantity);
 
@@ -171,61 +178,87 @@ public class Main {
         list.add(products);
 
         System.out.println(GREEN + "\nProduto adicionado com sucesso !" + RESET);
-
+        
+        pause(input);   //pausa o programa
     }
 
     public static void updateQuantity(List<Product> list, Scanner input, Product products) {
-
+        clearScreen();
         System.out.println(BLUE + "\nAtualizar quantidade em estoque.\n" + RESET);
-
-        System.out.print("\n\tInforme o código do produto --> ");
-        int code = input.nextInt();
-
+        
+        int code = 0;
+        while(code == 0) {
+            System.out.print("\n\tInforme o código do produto --> ");
+            code = validInput(input, list, null);
+        }
+        
         // verificar se o código existe, se não retorna null
         Product idExist = Product.hasCode(list, code);
 
         char action = ' ';
         if (idExist != null) {
+            System.out.println(idExist.toString());
             while (action != 'a' && action != 'A' && action != 'r' && action != 'R') {
                 System.out.print("\n\tDeseja adicionar (A) ou Remover (R) quantidade em estoque ? --> ");
                 action = input.next().charAt(0);
 
-                if (action != 'a' && action != 'A' && action != 'r' && action != 'R') {
+                if (action == '/') {    // caso o usuário digite /, volta ao menu
+                    menu(list, input, products);
+
+                }else if (action != 'a' && action != 'A' && action != 'r' && action != 'R') {
                     System.out.println(RED + "\n\tOpção invalida, tente novamente." + RESET);
                 }
             }
 
+            int quantity = 0;
             if (action == 'a' || action == 'A') {
-                System.out.print("\n\tInforme a quantidade a ser adicionada no estoque --> ");
-                int quantity = input.nextInt();
+                while(quantity < 0 || quantity == 0) {
+                    System.out.print("\n\tInforme a quantidade a ser adicionada ao estoque --> ");
+                    
+                    quantity = validInput(input, list, products);
 
-                idExist.enterQuantity(quantity); // função para adicionar quantidade
-            } else {
-                System.out.print("\n\tInforme a quantidade a ser removida do estoque --> ");
-                int quantity = input.nextInt();
-
-                if(quantity > idExist.getQuantity()) {
-                    System.out.println(RED + "\n\tQuantidade indisponível, tente novamente." + RESET);
-                    return;
+                    if (quantity < 0) {
+                        System.out.println(RED + "\n\tQuantidade inválida, tente novamente." + RESET);
+                    }
                 }
 
-                idExist.removeQuantity(quantity); // função para remover quantidade
+                idExist.enterQuantity(quantity); // adiciona a quantidade informada ao estoque
+
+            }else {
+                while(quantity < 0 || quantity == 0) {
+                    System.out.print("\n\tInforme a quantidade a ser removida do estoque --> ");
+                    
+                    quantity = validInput(input, list, products);
+
+                    if (quantity < 0) {
+                        System.out.println(RED + "\n\tQuantidade inválida, tente novamente." + RESET);
+                    } else if (quantity > idExist.getQuantity()) {
+                        System.out.println(RED + "\n\tQuantidade maior que a disponível em estoque, tente novamente." + RESET);
+                        quantity = 0;
+                    }
+                }
+                idExist.removeQuantity(quantity); // remove a quantidade informada do estoque
             }
 
             System.out.println(GREEN + "\nQuantidade atualizada com sucesso!\n" + RESET);
+            
         } else { // caso idExist seja null
             System.out.println(RED + "\nCódigo não encontrado, tente novamente.\n" + RESET);
-            return;
         }
+
+        pause(input);
     }
 
     public static void showTotalValueProduct(List<Product> list, Scanner input, Product products) {
-
+        clearScreen();
         System.out.println(BLUE + "\nValor total em estoque de um produto." + RESET);
 
-        System.out.print("\nDigite o código do produto que deseja consultar --> ");
-        int code = input.nextInt();
-
+        int code = 0;
+        while(code == 0) {
+            System.out.print("\n\tDigite o código do produto que deseja consultar --> ");
+            code = validInput(input, list, products);
+        }
+        
         // verifica se o código existe, se não retorna null
         Product idExist = Product.hasCode(list, code);
 
@@ -236,96 +269,105 @@ public class Main {
             System.out.println(RED + "\n\tCódigo não encontrado, tente novamente." + RESET);
         }
 
+        pause(input);
     }
 
-    public static void listAllProducts(List<Product> list, Scanner input, Product products) {
+    public static void listAllProducts(List<Product> list, Scanner input) {
+        clearScreen();
         System.out.println(BLUE + "\nLista de produto em estoque.\n" + RESET);
 
         for (Product product : list) {
-            System.out.println("\n\t----------------------------------");
-
             System.out.println(product.toString()); // printa as informações do produto
         }
-        System.out.println("\n\t----------------------------------\n\n");
+        
+        pause(input);
     }
 
-    public static void calculateTotalValue(List<Product> list, Scanner input, Product products) {
+    public static void calculateTotalValue(List<Product> list, Scanner input) {
+        clearScreen();
+        
         double totalValue = 0;
-
         for (Product product : list) {
             totalValue += product.valueTotalProduct(); // soma o valor total de todos os produtos
         }
 
         System.out.println("\n\tValor total em estoque de todos os produtos --> R$ " + totalValue);
+        pause(input);
     }
 
     public static void editProduct(List<Product> list, Scanner input, Product products) {
+        clearScreen();
         System.out.println(BLUE + "\nEditar produto.\n" + RESET);
-
-        System.out.print("\n\tInforme o código do produto que deseja editar --> ");
-        int code = input.nextInt();
-
+        int code = 0;
+        while(code == 0){
+            System.out.print("\n\tInforme o código do produto que deseja editar --> ");
+            code = validInput(input, list, products);
+        }
+        
         Product idExist = Product.hasCode(list, code);
-
+        
+        boolean invalidInput = false;
         if (idExist != null) {
-            boolean invalidResp = true;
+            System.out.println(idExist.toString()); // printa as informações do produto
+            int op = 0;
+            while(!invalidInput || op == 0) {
 
-            System.out.println(idExist.toString());
-            do {
-                invalidResp = true;
+                invalidInput = true;
                 System.out.println("\n\tO que deseja editar ?\n");
                 System.out.println("\t 1 - Código.\n\t 2 - Descrição.\n\t 3 - Preço");
-                int op = input.nextInt();
-
+                op = validInput(input, list, products); // verifica se a entrada é válida
+                
                 switch (op) {
                     case 1:
                         System.out.print("\n\tInforme o novo código --> ");
                         int newCode = input.nextInt();
-
-                        idExist.setCode(newCode);
+                    
+                        idExist.setCode(newCode);   //altera o código
                         break;
                     case 2:
                         System.out.print("\n\tInforme a nova descrição --> ");
                         input.nextLine();
                         String newDescription = input.nextLine();
-
-                        idExist.setDescription(newDescription);
+                        
+                        idExist.setDescription(newDescription); //altera a descrição
                         break;
                     case 3:
                         System.out.print("\n\tInforme o novo preço --> ");
                         double newPrice = input.nextDouble();
-
-                        idExist.setPrice(newPrice);
+                    
+                        idExist.setPrice(newPrice); //altera o preço
                         break;
                     default:
-                        System.out.println(RED + "\n\tOpção invalida, tente novamente.\n" + RESET);
-                        invalidResp = false;
+                        invalidInput = false;   //caso a opção seja inválida
                         break;
                 }
-
-            } while (!invalidResp);
-
+            }
             System.out.println(GREEN + "\n\tProduto editado com sucesso !" + RESET);
 
         } else {
             System.out.println(RED + "\nCódigo não encontrado, tente novamente.\n" + RESET);
         }
+        pause(input);
     }
 
     public static void deleteProduct(List<Product> list, Scanner input, Product products) {
+        clearScreen();
         System.out.println(BLUE + "\nExcluir produto.\n" + RESET);
 
-        System.out.print("\n\tInforme o código do produto que deseja excluir --> ");
-        int code = input.nextInt();
-
+        int code = 0;
+        while(code == 0) {
+            System.out.print("\n\tInforme o código do produto que deseja excluir --> ");
+            code = validInput(input, list, products);
+        }
+        // verifica se o código existe, se não retorna null
         Product idExist = Product.hasCode(list, code);
 
         if (idExist != null) {
-            System.out.println(idExist.toString());
+            System.out.println(idExist.toString()); // printa as informações do produto
 
             char resp = ' ';
             while (resp != 's' && resp != 'S' && resp != 'n' && resp != 'N') {
-                System.out.println("\n\tDeseja realmente excluir o produto ? (s/n) --> ");
+                System.out.print("\n\tDeseja realmente excluir o produto ? (s/n) --> ");
                 resp = input.next().charAt(0);
 
                 if (resp != 's' && resp != 'S' && resp != 'n' && resp != 'N') {
@@ -334,27 +376,65 @@ public class Main {
             }
 
             if (resp =='s' || resp == 'S'){
-                list.remove(idExist);
+                list.remove(idExist);   //remove o produto da lista
                 System.out.println(GREEN + "\n\tProduto excluido com sucesso !" + RESET);
             } else {
-                System.out.println(RED + "\n\tProduto não excluido." + RESET);
+                System.out.println(BLUE + "\n\tProduto não excluido." + RESET);
             }
         } else {
             System.out.println(RED + "\n\tCódigo não encontrado, tente novamente." + RESET);
         }
+
+        pause(input);
     }
 
+    //função para finalizar o programa
     public static void exitProgram() {
         System.out.print("\n\nFinalizando programa");
         for (int i = 0; i < 3; i++) {
             try {
-                Thread.sleep(1200);
+                Thread.sleep(1000);
                 System.out.print(".");
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+
         System.exit(0);
+    }
+
+    //função para validar a entrada do usuário
+    public static int validInput(Scanner input, List<Product> list, Product products) {
+        int entry = 0;
+       
+        try {   //tenta converter a entrada para int
+            entry = input.nextInt();
+        } catch (InputMismatchException e) {    //caso não seja possível
+            char codeChar = input.next().charAt(0); //pega o primeiro caractere da entrada
+
+            if(codeChar == '/') {   // caso o usuário digite '/', volta ao menu
+                menu(list, input, products);
+            }
+
+            //caso não converteu a entrada para int e o usuario não digitou '/', retorna mensagem de erro
+            System.out.print(RED + "\n\tEntrada inválida, tente novamente.\n" + RESET);
+            input.nextLine();
+        }
+        
+        return entry;
+    }
+
+    //clear screen
+    public static void clearScreen() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush(); 
+    }
+
+    //system pause  
+    public static void pause(Scanner input) {
+        System.out.println("\n\nPressione Enter para continuar...");
+        input.nextLine();
+        input.nextLine();
     }
 
 }

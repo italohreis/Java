@@ -71,7 +71,12 @@ public class Product {
     }
 
     public String toString() {
-        return "\n\tCódigo: " + code + "\n\tDescrição: " + description + "\n\tPreço: " + price + "\n\tQuantidade: " + quantity;
+        return "\n\t----------------------------------" + 
+        "\n\tCódigo: " + code + 
+        "\n\tDescrição: " + description + 
+        "\n\tPreço: " + price + 
+        "\n\tQuantidade: " + quantity + 
+        "\n\t----------------------------------";
     }
    
 }
