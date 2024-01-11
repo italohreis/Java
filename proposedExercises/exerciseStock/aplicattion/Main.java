@@ -1,11 +1,11 @@
-package exercises.exerciseStock.aplicattion;
+package proposedExercises.exerciseStock.aplicattion;
 
 import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Locale;
-import exercises.exerciseStock.entities.Product;
+import proposedExercises.exerciseStock.entities.Product;
 
 public class Main {
 
@@ -320,9 +320,22 @@ public class Main {
                 switch (op) {
                     case 1:
                         System.out.print("\n\tInforme o novo código --> ");
-                        int newCode = input.nextInt();
-                    
-                        idExist.setCode(newCode);   //altera o código
+                        int newCode = validInput(input, list, products);
+
+                        if(newCode == 0) {  //caso o usuario tenha digitado entrada invalida, newcode retorna
+                            invalidInput = false;
+                            break;
+                        } else {
+                            Product.hasCode(list, newCode); // verifica se o código existe, se não retorna null
+                            if (Product.hasCode(list, newCode) != null) {
+                                System.out.println(RED + "\n\tCódigo já cadastrado, tente novamente." + RESET);
+                                invalidInput = false;
+                                break;
+                            } else {
+                                idExist.setCode(newCode);   //altera o código
+                            }
+                        }
+
                         break;
                     case 2:
                         System.out.print("\n\tInforme a nova descrição --> ");
@@ -333,9 +346,14 @@ public class Main {
                         break;
                     case 3:
                         System.out.print("\n\tInforme o novo preço --> ");
-                        double newPrice = input.nextDouble();
-                    
-                        idExist.setPrice(newPrice); //altera o preço
+                        double newPrice = validInput(input, list, products);
+
+                        if (newPrice == 0) {
+                            invalidInput = false;
+                            break;
+                        } else { 
+                            idExist.setPrice(newPrice); //altera o preço
+                        }
                         break;
                     default:
                         invalidInput = false;   //caso a opção seja inválida

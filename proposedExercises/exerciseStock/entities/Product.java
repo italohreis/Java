@@ -1,4 +1,4 @@
-package exercises.exerciseStock.entities;
+package proposedExercises.exerciseStock.entities;
 
 import java.util.List;
 
